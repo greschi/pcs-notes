@@ -20,20 +20,26 @@ RUN systemctl mask \
     getty.target \
     console-getty.service
 
-# Create directory for the Unix socket with appropriate permissions for www-data
-RUN mkdir -p /run/notes && \
-    chown -R www-data:www-data /run/notes && \
-    chmod 755 /run/notes
+# Setup systemd tmpfiles to automatically create /run/notes with www-data permissions on boot
+COPY notes-tmpfiles.conf /etc/tmpfiles.d/notes.conf
 
 # Remove default nginx site config and copy custom configuration
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/notes.conf
 
-# Enable nginx via systemd
-RUN systemctl enable nginx
+# Setup Go application directory and copy binary and systemd service
+RUN mkdir -p /opt/notes
+COPY notes-app /opt/notes/notes-app
+COPY notes-app.service /etc/systemd/system/notes-app.service
+RUN chmod +x /opt/notes/notes-app
+
+# Enable nginx and notes-app via systemd
+RUN systemctl enable nginx notes-app
 
 EXPOSE 80
 
-VOLUME [ "/sys/fs/cgroup", "/run", "/run/lock" ]
+STOPSIGNAL SIGRTMIN+3
+
+VOLUME [ "/sys/fs/cgroup" ]
 
 CMD ["/lib/systemd/systemd"]
