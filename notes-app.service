@@ -4,10 +4,31 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
+User=notes-user
+Group=notes-user
 WorkingDirectory=/opt/notes
 ExecStart=/opt/notes/notes-app
 Restart=always
+
+# Sandboxing Security Directives
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+NoNewPrivileges=true
+
+# Allow read-write access only to application storage and socket directories
+ReadWritePaths=/opt/notes /run/notes
+
+# Restrict networking to Unix domain sockets only
+RestrictAddressFamilies=AF_UNIX
+
+# Drop all Linux capabilities
+CapabilityBoundingSet=
+AmbientCapabilities=
 
 [Install]
 WantedBy=multi-user.target

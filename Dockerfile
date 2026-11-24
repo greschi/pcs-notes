@@ -20,7 +20,10 @@ RUN systemctl mask \
     getty.target \
     console-getty.service
 
-# Setup systemd tmpfiles to automatically create /run/notes with www-data permissions on boot
+# Create dedicated notes-user
+RUN useradd -r -s /sbin/false notes-user
+
+# Setup systemd tmpfiles to automatically create /run/notes with notes-user:www-data permissions on boot
 COPY notes-tmpfiles.conf /etc/tmpfiles.d/notes.conf
 
 # Remove default nginx site config and copy custom configuration
@@ -28,10 +31,12 @@ RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/notes.conf
 
 # Setup Go application directory and copy binary and systemd service
-RUN mkdir -p /opt/notes
+RUN mkdir -p /opt/notes && \
+    chown -R notes-user:notes-user /opt/notes
 COPY notes-app /opt/notes/notes-app
 COPY notes-app.service /etc/systemd/system/notes-app.service
-RUN chmod +x /opt/notes/notes-app
+RUN chmod +x /opt/notes/notes-app && \
+    chown notes-user:notes-user /opt/notes/notes-app
 
 # Enable nginx and notes-app via systemd
 RUN systemctl enable nginx notes-app
