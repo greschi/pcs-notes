@@ -51,7 +51,6 @@ func (s *Store) load() error {
 	decoder := json.NewDecoder(file)
 	var notesList []Note
 	if err := decoder.Decode(&notesList); err != nil {
-		// Try decoding as map if list fails
 		file.Seek(0, 0)
 		return decoder.Decode(&s.Notes)
 	}
@@ -139,6 +138,8 @@ func main() {
 			json.NewEncoder(w).Encode(result)
 
 		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, 1024*1024)
+
 			var req Note
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -197,6 +198,8 @@ func main() {
 			json.NewEncoder(w).Encode(note)
 
 		case http.MethodPut:
+			r.Body = http.MaxBytesReader(w, r.Body, 1024*1024)
+
 			var req Note
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -257,12 +260,10 @@ func main() {
 	})
 
 	socketPath := "/run/notes/notes.sock"
-	// Ensure parent directory exists
 	if err := os.MkdirAll(filepath.Dir(socketPath), 0755); err != nil {
 		log.Fatalf("Failed to create socket directory: %v", err)
 	}
 
-	// Remove existing socket file if exists
 	if err := os.Remove(socketPath); err != nil && !os.IsNotExist(err) {
 		log.Fatalf("Failed to remove old socket: %v", err)
 	}
@@ -273,7 +274,6 @@ func main() {
 	}
 	defer listener.Close()
 
-	// Ensure permissions allow nginx (www-data) to access the socket
 	if err := os.Chmod(socketPath, 0777); err != nil {
 		log.Fatalf("Failed to set socket permissions: %v", err)
 	}
