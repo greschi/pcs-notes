@@ -1,4 +1,4 @@
-.PHONY: build docker-build docker-run docker-stop clean
+.PHONY: build docker-build docker-run docker-stop clean trivy-scan
 
 BINARY_NAME=notes-app
 CONTAINER_NAME=trixie-nginx-container
@@ -28,6 +28,10 @@ docker-run: docker-build
 docker-stop:
 	-docker stop $(CONTAINER_NAME)
 	-docker rm $(CONTAINER_NAME)
+
+trivy-scan:
+	@echo "Running Trivy vulnerability scan on $(IMAGE_NAME)..."
+	trivy image $(IMAGE_NAME) || docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image $(IMAGE_NAME)
 
 clean:
 	rm -f $(BINARY_NAME)
