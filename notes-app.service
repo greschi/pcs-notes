@@ -18,7 +18,16 @@ PrivateDevices=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
+ProtectClock=true
+ProtectKernelLogs=true
+RestrictRealtime=true
+LockPersonality=true
 NoNewPrivileges=true
+
+# Restrict Namespaces & System Calls
+RestrictNamespaces=true
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
 
 # Allow read-write access only to application storage and socket directories
 ReadWritePaths=/opt/notes /run/notes
