@@ -1,0 +1,13 @@
+[Unit]
+Description=Notes Go Application
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/notes
+ExecStart=/opt/notes/notes-app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
